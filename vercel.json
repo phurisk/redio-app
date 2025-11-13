@@ -1,5 +1,3 @@
 {
-  "buildCommand": "cd radio-player-nextjs && npm run build",
-  "outputDirectory": "radio-player-nextjs/.next",
-  "installCommand": "cd radio-player-nextjs && npm install"
+  "version": 2
 }
