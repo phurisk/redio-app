@@ -2,6 +2,7 @@ const STREAM_SOURCE_URL =
   process.env.STREAM_SOURCE_URL || 'http://localhost:8000/radio.mp3';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   if (!STREAM_SOURCE_URL) {
