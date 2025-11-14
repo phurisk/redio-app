@@ -120,14 +120,22 @@ npm run dev
 
 เปิด `http://localhost:3000` จะเห็น player สวยๆ
 
+สร้างไฟล์ `.env.local` (ดูตัวอย่างใน repo) แล้วใส่ค่าพื้นฐาน:
+
+```
+NEXT_PUBLIC_STREAM_URL=/api/stream
+STREAM_SOURCE_URL=http://localhost:8000/radio.mp3
+```
+
 ## Deploy
 
 ### Vercel
 
 1. Push code ขึ้น GitHub
 2. Import project ใน Vercel
-3. เพิ่ม environment variable:
-   - `NEXT_PUBLIC_STREAM_URL` = URL ของ stream จริง
+3. เพิ่ม environment variables:
+   - `NEXT_PUBLIC_STREAM_URL` = `/api/stream`
+   - `STREAM_SOURCE_URL` = URL ของ stream จริง (เช่น `https://radio.example.com/listen/.../radio.mp3`)
 4. Deploy
 
 ### VPS

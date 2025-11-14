@@ -11,7 +11,7 @@ export default function RadioPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const STREAM_URL = process.env.NEXT_PUBLIC_STREAM_URL || 'http://localhost:8000/radio.mp3';
+  const STREAM_URL = process.env.NEXT_PUBLIC_STREAM_URL || '/api/stream';
 
   useEffect(() => {
     if (audioRef.current) {
