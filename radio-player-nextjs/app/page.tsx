@@ -2,22 +2,57 @@
 
 import { useState, useRef, useEffect } from 'react';
 
+const STATIONS = [
+  {
+    id: 'delight-fm',
+    name: '90.5 Delight FM Phuket',
+    url: 'https://cdn-th2.livestreaming.in.th/shoutcast/8895',
+    description: 'Live from Phuket'
+  },
+  {
+    id: 'my-station',
+    name: 'My Radio Station',
+    url: '/api/stream',
+    description: 'Your Personal Station'
+  }
+];
+
 export default function RadioPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(70);
   const [isMuted, setIsMuted] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentStation, setCurrentStation] = useState(STATIONS[0]); // Default to Delight FM
+  const [autoPlayAttempted, setAutoPlayAttempted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const STREAM_URL = process.env.NEXT_PUBLIC_STREAM_URL || '/api/stream';
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume / 100;
     }
   }, [volume]);
+
+  // Auto-play on page load
+  useEffect(() => {
+    if (!autoPlayAttempted && audioRef.current) {
+      setAutoPlayAttempted(true);
+      // Small delay to ensure audio element is ready
+      setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current.play()
+            .then(() => {
+              setIsPlaying(true);
+            })
+            .catch(err => {
+              console.log('Auto-play prevented by browser:', err);
+              // Auto-play was blocked, user needs to click play
+            });
+        }
+      }, 500);
+    }
+  }, [autoPlayAttempted]);
 
   // Handle audio events for better streaming
   useEffect(() => {
@@ -89,6 +124,35 @@ export default function RadioPlayer() {
     }
   };
 
+  const changeStation = (station: typeof STATIONS[0]) => {
+    const wasPlaying = isPlaying;
+    
+    // Pause current playback
+    if (audioRef.current && isPlaying) {
+      audioRef.current.pause();
+    }
+    
+    // Change station
+    setCurrentStation(station);
+    setError(null);
+    
+    // If was playing, start new station after a brief moment
+    if (wasPlaying && audioRef.current) {
+      setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current.load();
+          audioRef.current.play().catch(err => {
+            console.error('Station change play error:', err);
+            setError('ไม่สามารถเล่นได้ กรุณาลองอีกครั้ง');
+            setIsPlaying(false);
+          });
+        }
+      }, 100);
+    } else {
+      setIsPlaying(false);
+    }
+  };
+
   const toggleMute = () => {
     if (audioRef.current) {
       audioRef.current.muted = !isMuted;
@@ -112,7 +176,7 @@ export default function RadioPlayer() {
     <main className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center p-4">
       <audio
         ref={audioRef}
-        src={STREAM_URL}
+        src={currentStation.url}
         preload="auto"
         crossOrigin="anonymous"
       />
@@ -128,20 +192,39 @@ export default function RadioPlayer() {
                   <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-1">Demo Radio</h2>
-              <p className="text-white/80 text-sm">Live Streaming</p>
+              <h2 className="text-2xl font-bold text-white mb-1">{currentStation.name}</h2>
+              <p className="text-white/80 text-sm">{currentStation.description}</p>
             </div>
           </div>
 
           {/* Player Controls */}
           <div className="p-8">
+            {/* Station Selector */}
+            <div className="mb-6">
+              <div className="flex gap-2">
+                {STATIONS.map((station) => (
+                  <button
+                    key={station.id}
+                    onClick={() => changeStation(station)}
+                    className={`flex-1 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${
+                      currentStation.id === station.id
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {station.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Song Info */}
             <div className="text-center mb-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-1">
                 Now Playing
               </h3>
               <p className="text-gray-500 text-sm">
-                Streaming from AzuraCast
+                {currentStation.description}
               </p>
             </div>
 
